@@ -17,8 +17,12 @@ class Rooms {
       return item.roomId === roomId;
     });
     if (findRoom) {
-      if (findRoom.roomUsers[0]?.index !== user.index) findRoom.roomUsers = [...findRoom.roomUsers, user];
+      if (findRoom.roomUsers[0]?.index !== user.index) {
+        findRoom.roomUsers = [...findRoom.roomUsers, user];
+        return findRoom.roomUsers;
+      }
     }
+
     emitter.emit(OutputMessageType.UpdateRooms);
   }
 

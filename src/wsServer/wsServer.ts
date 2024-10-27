@@ -12,7 +12,10 @@ export const wsServer = (): void => {
     const setCurrentUser = (user: UserWithoutPasswordType) => {
       currentUser = user;
     };
-    regestrationEmmiter(ws);
+    const getCurrentUser = () => {
+      return currentUser;
+    };
+    regestrationEmmiter({ ws, getCurrentUser });
     ws.on("message", (message: Buffer) => handlerInputMessage({ ws, message, currentUser, setCurrentUser }));
     ws.on("close", () => console.log("Client was disconnected"));
   });

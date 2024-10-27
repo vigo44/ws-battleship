@@ -38,7 +38,7 @@ export const handlerInputMessage = ({ ws, message, currentUser, setCurrentUser }
         }
         break;
       default:
-        throw new Error("Invalid type incomingMessage");
+        console.log("Invalid type incomingMessage");
         break;
     }
   } catch (error) {
