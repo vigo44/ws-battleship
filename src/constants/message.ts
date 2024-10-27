@@ -9,6 +9,7 @@ export enum InputMessageType {
 
 export enum OutputMessageType {
   Reg = "reg",
+  Winners = "update_winners",
 }
 
 export const INVALID_PASSWORD = "Invalid password! Try again!";

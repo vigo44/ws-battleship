@@ -5,3 +5,5 @@ export type UserType = {
 };
 
 export type NewUserType = Omit<UserType, "id">;
+
+export type UserWithoutPasswordType = Omit<UserType, "password">;
