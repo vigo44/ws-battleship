@@ -7,9 +7,10 @@ import { handlerOutputMessage } from "./handlerOutputMessage";
 export const handlerUserReg = (ws: WebSocket, data: string) => {
   try {
     const newUser: dataInputRegType = JSON.parse(data);
-    const responseData = { ...usersDB.addUser(newUser), error: false, errorText: "" };
+    const userReg = usersDB.addUser(newUser);
+    const responseData = { userReg, error: false, errorText: "" };
     handlerOutputMessage({ ws, data: responseData, type: OutputMessageType.Reg });
-    return true;
+    return userReg;
   } catch (error) {
     if (error instanceof ErrorPassword) {
       handlerOutputMessage({
