@@ -1,9 +1,9 @@
 export type WinnerType = {
-  id: string | number;
+  index: string | number;
   name: string;
   wins: number;
 };
 
-export type WinnerWithoutIdType = Omit<WinnerType, "id">;
+export type WinnerWithoutIndexType = Omit<WinnerType, "index">;
 
 export type NewWinnerType = Omit<WinnerType, "wins">;
