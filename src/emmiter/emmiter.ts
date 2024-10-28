@@ -5,7 +5,7 @@ import { handlerUpdateRooms } from "../wsServer/handlerUpdateRooms";
 import { UserWithoutPasswordType } from "../types/user";
 import { gamesDB } from "../store/games";
 import { handlerCreateGame } from "../wsServer/handlerCreateGame";
-import { GameType, IdPlayerType, ShotType } from "../types/game";
+import { GameType, IdPlayerType, ShotType, StatusType } from "../types/game";
 import { handlerStartGame } from "../wsServer/handlerStartGame";
 import { handlerGameTurn } from "../wsServer/handlerGameTurn";
 import { handlerAttackFeedBack } from "../wsServer/handlerAttackFeedBack";
@@ -42,12 +42,14 @@ export const regestrationEmmiter = ({ ws, getCurrentUser }: regestrationEmmiterT
       handlerGameTurn(ws, game.masterPlayer.idPlayer);
     }
   });
-  emitter.on(OutputMessageType.AttackFeedBack, (shot: ShotType, game: GameType) => {
+  emitter.on(OutputMessageType.AttackFeedBack, (shots: ShotType[], game: GameType, status: StatusType) => {
     const currentUser = getCurrentUser();
     if (!currentUser?.index) return;
     if (currentUser.index === game.masterPlayer.index || currentUser.index === game.slavePlayer.index) {
-      handlerAttackFeedBack(ws, shot);
-      if (shot.status === "miss") {
+      shots.forEach((item) => {
+        handlerAttackFeedBack(ws, item);
+      });
+      if (status === "miss") {
         handlerGameTurn(ws, game.turn);
       }
     }

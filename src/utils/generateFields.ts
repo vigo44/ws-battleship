@@ -27,11 +27,3 @@ export const addShips = (ships: ShipType[]): FieldType => {
   });
   return field;
 };
-
-export const checkKilled = (field: FieldType, x: number, y: number) => {
-  const xBeffore = field[y][x - 1] && field[y][x - 1][0] !== 0 && field[y][x - 1][1] === "nonShot";
-  const xAfter = field[y][x + 1] && field[y][x + 1][0] !== 0 && field[y][x + 1][1] === "nonShot";
-  const yBeffore = field[y - 1] && field[y - 1][x] && field[y - 1][x][0] !== 0 && field[y - 1][x][1] === "nonShot";
-  const yAfter = field[y + 1] && field[y + 1][x] && field[y + 1][x][0] !== 0 && field[y + 1][x][1] === "nonShot";
-  return xBeffore || xAfter || yBeffore || yAfter;
-};

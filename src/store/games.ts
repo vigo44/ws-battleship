@@ -3,6 +3,8 @@ import { emitter } from "../emmiter/emmiter";
 import {
   AttackDataType,
   AttackRandomDataType,
+  CellType,
+  FieldType,
   GameCreateDataType,
   GameType,
   IdGameType,
@@ -14,9 +16,10 @@ import {
 import { ShipType } from "../types/ship";
 import { UserWithoutPasswordType } from "../types/user";
 import { randomUUID } from "node:crypto";
-import { addShips, checkKilled } from "../utils/generateFields";
+import { addShips } from "../utils/generateFields";
 import { winnersDB } from "./winners";
 import { usersDB } from "./users";
+import { checkKilled } from "../utils/checkKilled";
 
 class Games {
   private games: GameType[] = [];
@@ -121,6 +124,71 @@ class Games {
     game.turn = turn;
   }
 
+  private checkKilled(field: FieldType, x: number, y: number) {
+    const ship = field[y][x][0];
+    let flatField: CellType[] = [];
+    field.forEach((item) => {
+      flatField = [...flatField, ...item];
+    });
+    const filterShipCell = flatField.filter((item) => {
+      return item[0] === ship;
+    });
+    const filterShot = filterShipCell.filter((item) => {
+      return item[1] === "shot";
+    });
+    if (filterShipCell.length === filterShot.length) {
+      filterShot.map(() => {
+        return [ship, "killed"];
+      });
+      return "killed";
+    }
+    return "shot";
+  }
+
+  private findShipKilled(field: FieldType, ship: number, indexPlayer: IdPlayerType): ShotType[] {
+    const shipKilled: ShotType[] = [];
+    for (let i = 0; i < 10; i++) {
+      for (let j = 0; j < 10; j++) {
+        if (field[i][j][0] === ship) {
+          shipKilled.push({ position: { x: j, y: i }, currentPlayer: indexPlayer, status: "killed" });
+          if (field[i - 1]?.[j]?.[0] === 0) {
+            shipKilled.push({ position: { x: j, y: i - 1 }, currentPlayer: indexPlayer, status: "miss" });
+            field[i - 1][j][1] = "miss";
+          }
+          if (field[i + 1]?.[j]?.[0] === 0) {
+            shipKilled.push({ position: { x: j, y: i + 1 }, currentPlayer: indexPlayer, status: "miss" });
+            field[i + 1][j][1] = "miss";
+          }
+          if (field[i]?.[j - 1]?.[0] === 0) {
+            shipKilled.push({ position: { x: j - 1, y: i }, currentPlayer: indexPlayer, status: "miss" });
+            field[i][j - 1][1] = "miss";
+          }
+          if (field[i]?.[j + 1]?.[0] === 0) {
+            shipKilled.push({ position: { x: j + 1, y: i }, currentPlayer: indexPlayer, status: "miss" });
+            field[i][j + 1][1] = "miss";
+          }
+          if (field[i - 1]?.[j - 1]?.[0] === 0) {
+            shipKilled.push({ position: { x: j - 1, y: i - 1 }, currentPlayer: indexPlayer, status: "miss" });
+            field[i - 1][j - 1][1] = "miss";
+          }
+          if (field[i + 1]?.[j + 1]?.[0] === 0) {
+            shipKilled.push({ position: { x: j + 1, y: i + 1 }, currentPlayer: indexPlayer, status: "miss" });
+            field[i + 1][j + 1][1] = "miss";
+          }
+          if (field[i + 1]?.[j - 1]?.[0] === 0) {
+            shipKilled.push({ position: { x: j - 1, y: i + 1 }, currentPlayer: indexPlayer, status: "miss" });
+            field[i + 1][j - 1][1] = "miss";
+          }
+          if (field[i - 1]?.[j + 1]?.[0] === 0) {
+            shipKilled.push({ position: { x: j + 1, y: i - 1 }, currentPlayer: indexPlayer, status: "miss" });
+            field[i - 1][j + 1][1] = "miss";
+          }
+        }
+      }
+    }
+    return shipKilled;
+  }
+
   public attack({ gameId, x, y, indexPlayer }: AttackDataType) {
     const player = this.getEnemyPlayer(gameId, indexPlayer);
     const game = this.findGame(gameId);
@@ -129,15 +197,17 @@ class Games {
       const [ship, cellType] = player.field[y][x];
       if (cellType !== "nonShot") return;
       if (ship !== 0) {
-        typeAttack = checkKilled(player.field, x, y) ? "killed" : "shot";
-        player.field[y][x][1] = typeAttack;
+        player.field[y][x][1] = "shot";
+        typeAttack = this.checkKilled(player.field, x, y);
         player.amountShot--;
-        // todo
       } else {
         player.field[y][x][1] = typeAttack;
         this.turn(game, player.idPlayer);
       }
-      const attackFeedBack: ShotType = { position: { x, y }, currentPlayer: indexPlayer, status: typeAttack };
+      const attackFeedBack: ShotType[] =
+        typeAttack === "killed"
+          ? this.findShipKilled(player.field, ship, indexPlayer)
+          : [{ position: { x, y }, currentPlayer: indexPlayer, status: typeAttack }];
       if (player.amountShot === 0) {
         const index = this.getPlayer(gameId, indexPlayer)?.index;
         if (index) {
@@ -148,7 +218,7 @@ class Games {
         }
         emitter.emit(OutputMessageType.Finish, game, indexPlayer);
       } else {
-        emitter.emit(OutputMessageType.AttackFeedBack, attackFeedBack, game);
+        emitter.emit(OutputMessageType.AttackFeedBack, attackFeedBack, game, typeAttack);
       }
     }
   }
