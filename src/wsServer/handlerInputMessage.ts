@@ -7,6 +7,7 @@ import { UserWithoutPasswordType } from "../types/user";
 import { handlerUpdateRooms } from "./handlerUpdateRooms";
 import { handlerAddRoom } from "./handlerAddRoom";
 import { handlerCreateRoom } from "./handlerCreateRoom";
+import { handlerAddShips } from "./handlerAddShip";
 
 type HandlerInputMessageProps = {
   ws: WebSocket;
@@ -36,6 +37,9 @@ export const handlerInputMessage = ({ ws, message, currentUser, setCurrentUser }
         if (currentUser) {
           handlerAddRoom(currentUser, data);
         }
+        break;
+      case InputMessageType.AddShip:
+        handlerAddShips(data);
         break;
       default:
         console.log("Invalid type incomingMessage");

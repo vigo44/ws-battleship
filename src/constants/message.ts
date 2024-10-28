@@ -12,6 +12,8 @@ export enum OutputMessageType {
   Winners = "update_winners",
   UpdateRooms = "update_room",
   CreateGame = "create_game",
+  Start_game = "start_game",
+  Turn = "turn",
 }
 
 export const INVALID_PASSWORD = "Invalid password! Try again!";

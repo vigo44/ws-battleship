@@ -1,15 +1,32 @@
+import { ShipType } from "./ship";
+
 export type GameType = {
-  idGame: number | string;
-  masterPlayer: PlayerType;
-  slavePlayer: PlayerType;
+  idGame: IdGameType;
+  masterPlayer: PlayerTypeWithField;
+  slavePlayer: PlayerTypeWithField;
 };
 
 type PlayerType = {
-  idPlayer: number | string;
+  idPlayer: IdPlayerType;
   index: number | string;
 };
 
+export type IdPlayerType = string | number;
+export type IdGameType = string | number;
+
+export type PlayerTypeWithField = PlayerType & {
+  field?: FieldType;
+  ships?: ShipType[];
+};
+
+export type FieldType = number[];
+
 export type GameCreateDataType = {
-  idGame: number | string;
-  idPlayer: number | string;
+  idGame: IdGameType;
+  idPlayer: IdPlayerType;
+};
+
+export type GameStartDataType = {
+  ships: ShipType[];
+  currentPlayerIndex: IdPlayerType;
 };
