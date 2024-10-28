@@ -42,6 +42,8 @@ export type AttackDataType = {
   indexPlayer: IdPlayerType;
 };
 
+export type AttackRandomDataType = Omit<AttackDataType, "x" | "y">;
+
 export type ShotType = {
   position: {
     x: number;

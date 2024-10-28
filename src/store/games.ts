@@ -2,6 +2,7 @@ import { OutputMessageType } from "../constants/message";
 import { emitter } from "../emmiter/emmiter";
 import {
   AttackDataType,
+  AttackRandomDataType,
   GameCreateDataType,
   GameType,
   IdGameType,
@@ -126,13 +127,14 @@ class Games {
     let typeAttack: StatusType = "miss";
     if (game && game.turn === indexPlayer && player && player?.field) {
       const [ship, cellType] = player.field[y][x];
+      if (cellType !== "nonShot") return;
       if (ship !== 0) {
-        if (cellType !== "nonShot") return;
         typeAttack = checkKilled(player.field, x, y) ? "killed" : "shot";
         player.field[y][x][1] = typeAttack;
         player.amountShot--;
         // todo
       } else {
+        player.field[y][x][1] = typeAttack;
         this.turn(game, player.idPlayer);
       }
       const attackFeedBack: ShotType = { position: { x, y }, currentPlayer: indexPlayer, status: typeAttack };
@@ -148,6 +150,22 @@ class Games {
       } else {
         emitter.emit(OutputMessageType.AttackFeedBack, attackFeedBack, game);
       }
+    }
+  }
+
+  public AtatackRandom({ gameId, indexPlayer }: AttackRandomDataType) {
+    const player = this.getEnemyPlayer(gameId, indexPlayer);
+    const game = this.findGame(gameId);
+    if (game && game.turn === indexPlayer && player && player?.field) {
+      let x = -1;
+      let y = -1;
+      while (true) {
+        x = Math.floor(Math.random() * 10);
+        y = Math.floor(Math.random() * 10);
+        const [ship, cellType] = player.field[x][y];
+        if (cellType === "nonShot") break;
+      }
+      this.attack({ gameId, indexPlayer, x, y });
     }
   }
 }
