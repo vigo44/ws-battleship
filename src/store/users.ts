@@ -1,5 +1,5 @@
 import { INVALID_PASSWORD } from "../constants/message";
-import { NewUserType, UserType, UserWithoutPasswordType } from "../types/user";
+import { IndexType, NewUserType, UserType, UserWithoutPasswordType } from "../types/user";
 import { randomUUID } from "node:crypto";
 
 export class ErrorPassword extends Error {
@@ -16,6 +16,10 @@ class Users {
   public findUser(newUser: NewUserType): UserWithoutPasswordType | undefined {
     const user = this.users.find((item) => item.name === newUser.name);
     return user && { name: user.name, index: user.index };
+  }
+
+  public findUserByIndex(index: IndexType) {
+    return this.users.find((item) => item.index === index);
   }
 
   public addUser(newUser: NewUserType) {

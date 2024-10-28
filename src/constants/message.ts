@@ -14,6 +14,8 @@ export enum OutputMessageType {
   CreateGame = "create_game",
   Start_game = "start_game",
   Turn = "turn",
+  AttackFeedBack = "attack",
+  Finish = "finish",
 }
 
 export const INVALID_PASSWORD = "Invalid password! Try again!";

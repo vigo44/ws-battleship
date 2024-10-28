@@ -1,18 +1,32 @@
 import { OutputMessageType } from "../constants/message";
 import { emitter } from "../emmiter/emmiter";
-import { GameCreateDataType, GameType, IdGameType, IdPlayerType, PlayerTypeWithField } from "../types/game";
+import {
+  AttackDataType,
+  GameCreateDataType,
+  GameType,
+  IdGameType,
+  IdPlayerType,
+  PlayerTypeWithField,
+  ShotType,
+  StatusType,
+} from "../types/game";
 import { ShipType } from "../types/ship";
 import { UserWithoutPasswordType } from "../types/user";
 import { randomUUID } from "node:crypto";
+import { addShips, checkKilled } from "../utils/generateFields";
+import { winnersDB } from "./winners";
+import { usersDB } from "./users";
 
 class Games {
   private games: GameType[] = [];
 
   public createGame([master, slave]: UserWithoutPasswordType[]) {
+    const idMaster = randomUUID();
     const newGame = {
       idGame: randomUUID(),
-      masterPlayer: { index: master.index, idPlayer: randomUUID() },
-      slavePlayer: { index: slave.index, idPlayer: randomUUID() },
+      masterPlayer: { index: master.index, idPlayer: idMaster, amountShot: 20 },
+      slavePlayer: { index: slave.index, idPlayer: randomUUID(), amountShot: 20 },
+      turn: idMaster,
     };
     this.games = [...this.games, newGame];
     emitter.emit(OutputMessageType.CreateGame);
@@ -78,21 +92,62 @@ class Games {
     return null;
   }
 
-  private checkCreateFields(idGame: IdGameType) {
+  public getEnemyPlayer(idGame: IdGameType, idPlayer: IdPlayerType): PlayerTypeWithField | null {
     const game = this.findGame(idGame);
-    if (game && game.slavePlayer.ships && game.masterPlayer.ships) {
-      return game.slavePlayer.ships && game.masterPlayer.ships;
+    if (game) {
+      return game.masterPlayer.idPlayer === idPlayer
+        ? game.slavePlayer
+        : game.slavePlayer.idPlayer === idPlayer
+        ? game.masterPlayer
+        : null;
     }
+    return null;
   }
 
   public createField(idGame: IdGameType, idPlayer: IdPlayerType, ships: ShipType[]) {
     const player = this.getPlayer(idGame, idPlayer);
     if (player) {
       player.ships = ships;
+      player.field = addShips(ships);
     }
     const game = this.findGame(idGame);
     if (game && game.slavePlayer.ships && game.masterPlayer.ships) {
       emitter.emit(OutputMessageType.Start_game, game);
+    }
+  }
+
+  public turn(game: GameType, turn: IdPlayerType) {
+    game.turn = turn;
+  }
+
+  public attack({ gameId, x, y, indexPlayer }: AttackDataType) {
+    const player = this.getEnemyPlayer(gameId, indexPlayer);
+    const game = this.findGame(gameId);
+    let typeAttack: StatusType = "miss";
+    if (game && game.turn === indexPlayer && player && player?.field) {
+      const [ship, cellType] = player.field[y][x];
+      if (ship !== 0) {
+        if (cellType !== "nonShot") return;
+        typeAttack = checkKilled(player.field, x, y) ? "killed" : "shot";
+        player.field[y][x][1] = typeAttack;
+        player.amountShot--;
+        // todo
+      } else {
+        this.turn(game, player.idPlayer);
+      }
+      const attackFeedBack: ShotType = { position: { x, y }, currentPlayer: indexPlayer, status: typeAttack };
+      if (player.amountShot === 0) {
+        const index = this.getPlayer(gameId, indexPlayer)?.index;
+        if (index) {
+          const userWin = usersDB.findUserByIndex(index);
+          if (userWin) {
+            winnersDB.addNewWinner(userWin);
+          }
+        }
+        emitter.emit(OutputMessageType.Finish, game, indexPlayer);
+      } else {
+        emitter.emit(OutputMessageType.AttackFeedBack, attackFeedBack, game);
+      }
     }
   }
 }
