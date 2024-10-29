@@ -115,7 +115,7 @@ class Games {
       player.field = addShips(ships);
     }
     const game = this.findGame(idGame);
-    if (game && game.slavePlayer.ships && game.masterPlayer.ships) {
+    if (game && game.masterPlayer.ships && (game.slavePlayer.ships || game.slavePlayer.index === "bot")) {
       emitter.emit(OutputMessageType.Start_game, game);
     }
   }

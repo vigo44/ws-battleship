@@ -5,6 +5,7 @@ export enum InputMessageType {
   AddShip = "add_ships",
   Attack = "attack",
   RandomAttack = "randomAttack",
+  Single_play = "single_play",
 }
 
 export enum OutputMessageType {

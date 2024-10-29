@@ -10,6 +10,7 @@ import { handlerCreateRoom } from "./handlerCreateRoom";
 import { handlerAddShips } from "./handlerAddShip";
 import { handlerAttack } from "./handlerAttack";
 import { handlerAttackRandom } from "./handlerAttackRandom";
+import { handlerSinglePlay } from "./handlerSinglePlay";
 
 type HandlerInputMessageProps = {
   ws: WebSocket;
@@ -48,6 +49,11 @@ export const handlerInputMessage = ({ ws, message, currentUser, setCurrentUser }
         break;
       case InputMessageType.RandomAttack:
         handlerAttackRandom(data);
+        break;
+      case InputMessageType.Single_play:
+        if (currentUser) {
+          handlerSinglePlay(currentUser);
+        }
         break;
       default:
         console.log("Invalid type incomingMessage");
